@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Resume Matcher</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <div class="page-wrapper">
+
+        <!-- HEADER -->
+
+        <header class="header">
+
+            <div class="brand">
+                <div class="brand-icon">AI</div>
+
+                <div>
+                    <h1>Resume Matcher</h1>
+                    <p>AI-powered resume analysis</p>
+                </div>
+            </div>
+
+            <span class="status">● AI Engine Ready</span>
+
+        </header>
+
+
+        <main class="main-container">
+
+            <!-- HERO -->
+
+            <section class="hero">
+
+                <span class="eyebrow">SMART CAREER ANALYSIS</span>
+
+                <h2>Find out how well your resume matches a job.</h2>
+
+                <p>
+                    Upload your resume and paste a job description.
+                    Our AI will analyze your skills and identify opportunities
+                    to improve your profile.
+                </p>
+
+            </section>
+
+
+            <!-- ERROR -->
+
+            {% if error %}
+
+            <div class="error">
+                <strong>Analysis Error</strong>
+                <p>{{ error }}</p>
+            </div>
+
+            {% endif %}
+
+
+            <!-- UPLOAD FORM -->
+
+            <section class="upload-card">
+
+                <div class="section-heading">
+                    <h2>Start Your Analysis</h2>
+                    <p>Provide your resume and target job description.</p>
+                </div>
+
+
+                <form method="POST" enctype="multipart/form-data" id="analysisForm">
+
+
+                    <!-- RESUME UPLOAD -->
+
+                    <div class="form-group">
+
+                        <label for="resume">Upload Resume</label>
+
+                        <div class="upload-box">
+
+                            <div class="upload-icon">↑</div>
+
+                            <input type="file" id="resume" name="resume" accept=".pdf" required>
+
+                            <p>Choose your resume PDF file</p>
+
+                            <span>PDF format only</span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- JOB DESCRIPTION -->
+
+                    <div class="form-group">
+
+                        <label for="job_description">
+                            Job Description
+                        </label>
+
+                        <textarea id="job_description" name="job_description" rows="9"
+                            placeholder="Paste the complete job description here..." required></textarea>
+
+                    </div>
+
+
+                    <button type="submit" class="analyze-btn" id="analyzeBtn">
+
+                        Analyze My Resume →
+
+                    </button>
+
+                </form>
+
+            </section>
+
+
+            <!-- ANALYSIS DASHBOARD -->
+
+            {% if result %}
+
+            {% set resume = result.get('resume_details', {}) %}
+            {% set job = result.get('job_details', {}) %}
+            {% set matching = result.get('matching_result', {}) %}
+            {% set gap = result.get('skill_gap_analysis', {}) %}
+
+            {% set score = matching.get('match_percentage', 0) %}
+            {% set matched = matching.get('matched_required_skills', []) %}
+            {% set missing = matching.get('missing_required_skills', []) %}
+            {% set preferred = matching.get('matched_preferred_skills', []) %}
+            {% set recommendations = gap.get('recommendations', []) %}
+
+
+            <section class="dashboard">
+
+                <div class="dashboard-heading">
+
+                    <div>
+                        <span class="eyebrow">ANALYSIS REPORT</span>
+
+                        <h2>Your Resume Analysis</h2>
+
+                        <p>
+                            Here is your resume's compatibility with the job.
+                        </p>
+                    </div>
+
+                    <span class="completed">
+                        ✓ Analysis Completed
+                    </span>
+
+                </div>
+
+
+                <!-- MATCH SCORE -->
+
+                <div class="score-card">
+
+                    <div class="score-content">
+
+                        <span class="card-label">
+                            OVERALL MATCH SCORE
+                        </span>
+
+                        <div class="score-number">
+
+                            {{ "%.2f"|format(score|float) }}<span>%</span>
+
+                        </div>
+
+                        <p>
+                            Based on
+                            {{ matching.get('total_required_skills', 0) }}
+                            required skills identified in the job description.
+                        </p>
+
+                    </div>
+
+
+                    <div class="score-visual">
+
+                        <div class="progress-circle" style="--score: {{ [[score|float, 0]|max, 100]|min }}">
+
+                            <div class="progress-inner">
+
+                                <strong>
+                                    {{ "%.0f"|format(score|float) }}%
+                                </strong>
+
+                                <span>Match</span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SUMMARY CARDS -->
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon green">✓</div>
+
+                        <h3>{{ matched|length }}</h3>
+
+                        <p>Matched Skills</p>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon red">!</div>
+
+                        <h3>{{ missing|length }}</h3>
+
+                        <p>Missing Skills</p>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon blue">★</div>
+
+                        <h3>{{ preferred|length }}</h3>
+
+                        <p>Preferred Skills</p>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon purple">◎</div>
+
+                        <h3>{{ resume.get('projects', [])|length }}</h3>
+
+                        <p>Projects Found</p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- JOB DETAILS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Target Job Details</h3>
+
+                        <p>
+                            Information extracted from the job description.
+                        </p>
+
+                    </div>
+
+
+                    <div class="info-grid">
+
+                        <div class="info-item">
+
+                            <span>Job Title</span>
+
+                            <strong>
+                                {{ job.get('job_title') or 'Not identified' }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Experience Required</span>
+
+                            <strong>
+                                {{ job.get('experience') or 'Not specified' }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Education</span>
+
+                            <strong>
+                                {{ job.get('education') or 'Not specified' }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MATCHED SKILLS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Matched Required Skills</h3>
+
+                        <p>
+                            Skills found in both your resume and the job requirements.
+                        </p>
+
+                    </div>
+
+
+                    <div class="skill-list">
+
+                        {% for skill in matched %}
+
+                        <span class="skill-tag matched">
+                            ✓ {{ skill }}
+                        </span>
+
+                        {% else %}
+
+                        <p class="empty-state">
+                            No exact required skills matched.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- MISSING SKILLS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Skill Gaps</h3>
+
+                        <p>
+                            Required skills that were not identified in your resume.
+                        </p>
+
+                    </div>
+
+
+                    <div class="skill-list">
+
+                        {% for skill in missing %}
+
+                        <span class="skill-tag missing">
+                            + {{ skill }}
+                        </span>
+
+                        {% else %}
+
+                        <p class="empty-state">
+                            No missing required skills identified.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- PREFERRED SKILLS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Preferred Skills</h3>
+
+                        <p>
+                            Additional skills matched from the employer's preferences.
+                        </p>
+
+                    </div>
+
+
+                    <div class="skill-list">
+
+                        {% for skill in preferred %}
+
+                        <span class="skill-tag preferred">
+                            ★ {{ skill }}
+                        </span>
+
+                        {% else %}
+
+                        <p class="empty-state">
+                            No preferred skills matched.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- RECOMMENDATIONS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>AI Skill Gap Recommendations</h3>
+
+                        <p>
+                            Suggested areas to improve based on the missing skills.
+                        </p>
+
+                    </div>
+
+
+                    {% for item in recommendations %}
+
+                    <div class="recommendation">
+
+                        <div class="recommendation-top">
+
+                            <strong>
+                                {{ item.get('skill', 'Skill') }}
+                            </strong>
+
+                            <span class="priority">
+                                {{ item.get('priority', 'Suggested') }}
+                            </span>
+
+                        </div>
+
+                        <p>
+                            {{ item.get('recommendation', '') }}
+                        </p>
+
+                    </div>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No additional recommendations available.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- RESUME PROFILE -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Resume Profile</h3>
+
+                        <p>
+                            Personal information extracted from your resume.
+                        </p>
+
+                    </div>
+
+
+                    <div class="info-grid">
+
+                        <div class="info-item">
+
+                            <span>Name</span>
+
+                            <strong>
+                                {{ resume.get('name') or 'Not found' }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Email</span>
+
+                            <strong>
+                                {{ resume.get('email') or 'Not found' }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="info-item">
+
+                            <span>Phone</span>
+
+                            <strong>
+                                {{ resume.get('phone') or 'Not found' }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- RESUME SKILLS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Resume Skills</h3>
+
+                        <p>
+                            Technical skills extracted from your resume.
+                        </p>
+
+                    </div>
+
+
+                    <div class="skill-list">
+
+                        {% for skill in resume.get('skills', []) %}
+
+                        <span class="skill-tag neutral">
+                            {{ skill }}
+                        </span>
+
+                        {% else %}
+
+                        <p class="empty-state">
+                            No technical skills found.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <h4 class="subheading">
+                        Professional Skills
+                    </h4>
+
+                    <div class="skill-list">
+
+                        {% for skill in resume.get('professional_skills', []) %}
+
+                        <span class="skill-tag neutral">
+                            {{ skill }}
+                        </span>
+
+                        {% else %}
+
+                        <p class="empty-state">
+                            No professional skills found.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <h4 class="subheading">
+                        Domain Skills
+                    </h4>
+
+                    <div class="skill-list">
+
+                        {% for skill in resume.get('domain_skills', []) %}
+
+                        <span class="skill-tag neutral">
+                            {{ skill }}
+                        </span>
+
+                        {% else %}
+
+                        <p class="empty-state">
+                            No domain skills found.
+                        </p>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- EDUCATION -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+                        <h3>Education</h3>
+                    </div>
+
+
+                    {% for item in resume.get('education', []) %}
+
+                    <div class="timeline-item">
+
+                        <strong>
+                            {{ item.get('degree') or 'Degree not specified' }}
+                        </strong>
+
+                        <p>
+                            {{ item.get('institution') or 'Institution not specified' }}
+                        </p>
+
+                        <span>
+                            {{ item.get('year') or 'Year not specified' }}
+                        </span>
+
+                    </div>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No education details found.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- EXPERIENCE -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+                        <h3>Work Experience</h3>
+                    </div>
+
+
+                    {% for item in resume.get('experience', []) %}
+
+                    <div class="timeline-item">
+
+                        <strong>
+                            {{ item.get('job_title') or 'Job title not specified' }}
+                        </strong>
+
+                        <p>
+                            {{ item.get('company') or 'Company not specified' }}
+                        </p>
+
+                        <span>
+                            {{ item.get('duration') or 'Duration not specified' }}
+                        </span>
+
+                        {% if item.get('description') %}
+
+                        <p class="description">
+                            {{ item.get('description') }}
+                        </p>
+
+                        {% endif %}
+
+                    </div>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No experience details found.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- PROJECTS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+
+                        <h3>Projects</h3>
+
+                        <p>
+                            Projects and technologies identified in your resume.
+                        </p>
+
+                    </div>
+
+
+                    {% for project in resume.get('projects', []) %}
+
+                    <div class="project-card">
+
+                        <h4>
+                            {{ project.get('project_name') or 'Untitled Project' }}
+                        </h4>
+
+                        {% if project.get('description') %}
+
+                        <p>
+                            {{ project.get('description') }}
+                        </p>
+
+                        {% endif %}
+
+
+                        <div class="skill-list">
+
+                            {% for technology in project.get('technologies', []) %}
+
+                            <span class="skill-tag neutral">
+                                {{ technology }}
+                            </span>
+
+                            {% endfor %}
+
+                        </div>
+
+                    </div>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No projects found.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- CERTIFICATIONS -->
+
+                <div class="content-card">
+
+                    <div class="section-heading">
+                        <h3>Certifications</h3>
+                    </div>
+
+
+                    {% for certificate in resume.get('certifications', []) %}
+
+                    <div class="timeline-item">
+
+                        <strong>
+                            {{ certificate.get('name') or 'Certification' }}
+                        </strong>
+
+                        <p>
+                            {{ certificate.get('provider') or 'Provider not specified' }}
+                        </p>
+
+                        <span>
+                            {{ certificate.get('date') or 'Date not specified' }}
+                        </span>
+
+                    </div>
+
+                    {% else %}
+
+                    <p class="empty-state">
+                        No certifications found.
+                    </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <!-- DEBUG JSON -->
+
+                <details class="debug-details">
+
+                    <summary>
+                        View Complete Technical Analysis (JSON)
+                    </summary>
+
+                    <h4>Matching Result</h4>
+
+                    <pre>{{ matching | tojson(indent=2) }}</pre>
+
+
+                    <h4>Skill Gap Analysis</h4>
+
+                    <pre>{{ gap | tojson(indent=2) }}</pre>
+
+                </details>
+
+
+            </section>
+
+            {% endif %}
+
+        </main>
+
+
+        <footer>
+
+            <p>
+                AI Resume Matcher · Built with Python, Flask, FastAPI and Ollama
+            </p>
+
+        </footer>
+
+    </div>
+
+
+    <!-- LOADING OVERLAY -->
+
+    <div class="loading-overlay" id="loadingOverlay">
+
+        <div class="loading-card">
+
+            <div class="loader"></div>
+
+            <h2>Analyzing Your Resume</h2>
+
+            <p id="loadingMessage">
+                Preparing your analysis...
+            </p>
+
+            <div class="loading-progress">
+
+                <div class="loading-progress-bar"></div>
+
+            </div>
+
+            <span>
+                Please don't close or refresh this page.
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- LOADING JAVASCRIPT -->
+
+    <script>
+
+        const form = document.getElementById("analysisForm");
+        const overlay = document.getElementById("loadingOverlay");
+        const button = document.getElementById("analyzeBtn");
+        const message = document.getElementById("loadingMessage");
+
+        const messages = [
+            "Uploading your resume...",
+            "Extracting resume information...",
+            "AI is analyzing your skills...",
+            "Analyzing the job description...",
+            "Comparing your skills with job requirements...",
+            "Identifying missing skills...",
+            "Preparing your analysis report..."
+        ];
+
+        let messageIndex = 0;
+        let messageTimer = null;
+
+        if (form) {
+
+            form.addEventListener("submit", function (event) {
+
+                // Prevent loading if the form is invalid.
+                if (!form.checkValidity()) {
+                    return;
+                }
+
+                // Show loading overlay.
+                overlay.classList.add("active");
+
+                // Disable button.
+                button.disabled = true;
+                button.textContent = "Analyzing...";
+
+                // First message.
+                messageIndex = 0;
+                message.textContent = messages[messageIndex];
+
+                // Rotate messages every 5 seconds.
+                messageTimer = setInterval(function () {
+
+                    if (messageIndex < messages.length - 1) {
+
+                        messageIndex++;
+
+                        message.textContent = messages[messageIndex];
+
+                    }
+
+                }, 5000);
+
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>
