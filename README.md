@@ -24,10 +24,10 @@ This project aims to simplify resume evaluation through AI-powered information e
 
 ## 3. Key Features
 
-- PDF Resume Parsing:\*\* Extracts text from uploaded PDF resumes.
-- AI Resume Information Extraction:\*\* Extracts candidate details, education, experience, projects, certifications, and skills.
-- Job Description Analysis:\*\* Identifies job titles, required skills, preferred skills, experience, and education requirements.
-- Skill Classification:\*\* Organizes extracted skills into technical, professional, and domain-related categories.
+- PDF Resume Parsing: Extracts text from uploaded PDF resumes.
+- AI Resume Information Extraction: Extracts candidate details, education, experience, projects, certifications, and skills.
+- Job Description Analysis: Identifies job titles, required skills, preferred skills, experience, and education requirements.
+- Skill Classification: Organizes extracted skills into technical, professional, and domain-related categories.
 - Resume Matching: Compares candidate skills with job requirements.
 - Skill Gap Analysis: Identifies missing and related skills.
 - Match Percentage: Calculates a skill-based compatibility score.
